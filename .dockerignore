@@ -1,0 +1,37 @@
+# Version Control & Git
+**/.git
+**/.git*
+**/.github
+
+# Environment Variables & Secrets
+**/.env
+**/.env.*
+!.env.example
+
+# IDEs & Editors
+**/.vscode
+**/.idea
+**/.cursor
+**/.DS_Store
+**/Thumbs.db
+
+# Persistent Volumes & Logs
+logs/
+**/logs
+
+# Python & Dev Artifacts
+**/.venv
+**/venv
+**/__pycache__
+**/*.py[codz]
+**/*.pyc
+**/*.pyo
+**/*.pyd
+**/.pytest_cache
+**/.ruff_cache
+**/.mypy_cache
+**/.coverage
+htmlcov/
+
+# Documentation
+README.md
