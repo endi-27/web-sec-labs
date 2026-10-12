@@ -41,3 +41,15 @@ CRUD API з In-Memory сховищем для сутності `Book`:
 - `POST /api/v1/books` — створення книги
 - `PUT /api/v1/books/{id}` — оновлення книги
 - `DELETE /api/v1/books/{id}` — видалення книги
+
+## Лабораторна робота 3
+
+Додано автентифікацію та авторизацію на базі `fastapi.security` (`HTTPBasic` та `HTTPBearer` / JWT):
+- `POST /api/v1/auth/login` — вхід у систему (`admin` / `admin`) та отримання JWT-токена (`200 OK`)
+- Усі `GET`-ендпоінти (`GET /`, `GET /health`, `GET /api/v1/books`, `GET /api/v1/books/{id}`) відкриті (`200 OK`)
+- Усі НЕ-`GET` ендпоінти (`POST /api/v1/books`, `PUT /api/v1/books/{id}`, `DELETE /api/v1/books/{id}`) захищені залежністю `CurrentUserDep` і без авторизації повертають `401 Unauthorized`
+- HTTP-тести:
+  - Автотести `pytest`: `tests/test_http_auth.py`
+  - HTTP-файл для IDE: `tests/http/basic-authorization.http`
+
+
