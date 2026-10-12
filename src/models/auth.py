@@ -2,6 +2,8 @@ from typing import Annotated
 
 from pydantic import BaseModel, Field
 
+from src.models.user import UserRole
+
 
 class LoginRequest(BaseModel):
     """Схема запиту на вхід у систему."""
@@ -26,16 +28,10 @@ class LoginRequest(BaseModel):
     ]
 
 
-class UserResponse(BaseModel):
-    """Схема інформації про авторизованого користувача."""
-
-    username: str
-    role: str = "ADMIN"
-
-
 class TokenResponse(BaseModel):
     """Схема відповіді після успішного входу (JWT токен)."""
 
     access_token: str
     token_type: str = "bearer"
     username: str
+    role: UserRole

@@ -1,54 +1,62 @@
-import secrets
 from datetime import UTC, datetime, timedelta
 from typing import Annotated
 
+import bcrypt
 import jwt
 from fastapi import Depends, HTTPException, status
-from fastapi.security import (
-    HTTPAuthorizationCredentials,
-    HTTPBasic,
-    HTTPBasicCredentials,
-    HTTPBearer,
-)
 
 from src.config import settings
-from src.models.auth import TokenResponse, UserResponse
-
-http_basic = HTTPBasic(auto_error=False)
-http_bearer = HTTPBearer(auto_error=False)
+from src.models.auth import TokenResponse
+from src.models.user import UserResponse, UserRole
+from src.repositories.user_repository import UserRepository, UserRepositoryDep
 
 
 class AuthService:
-    """Сервіс автентифікації та авторизації користувачів."""
+    """Сервіс автентифікації та роботи з користувачами у PostgreSQL (BCrypt + JWT)."""
 
-    def authenticate_user(self, username: str, password: str) -> UserResponse | None:
-        """Перевірка логіна та пароля (захист від timing-атак через compare_digest)."""
-        is_correct_username = secrets.compare_digest(
-            username.encode("utf-8"),
-            settings.security_user_name.encode("utf-8"),
-        )
-        is_correct_password = secrets.compare_digest(
-            password.encode("utf-8"),
-            settings.security_user_password.encode("utf-8"),
-        )
-        if not (is_correct_username and is_correct_password):
+    def __init__(self, user_repository: UserRepository) -> None:
+        self._user_repository = user_repository
+
+    @staticmethod
+    def hash_password(plain_password: str) -> str:
+        """Хешування пароля за допомогою BCrypt."""
+        return bcrypt.hashpw(plain_password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+
+    @staticmethod
+    def verify_password(plain_password: str, hashed_password: str) -> bool:
+        """Перевірка пароля за допомогою BCrypt."""
+        try:
+            return bcrypt.checkpw(
+                plain_password.encode("utf-8"),
+                hashed_password.encode("utf-8"),
+            )
+        except ValueError:
+            return False
+
+    async def authenticate_user(self, username: str, password: str) -> UserResponse | None:
+        """Перевірка логіна та пароля користувача за таблицею users у PostgreSQL."""
+        user = await self._user_repository.find_by_username(username)
+        if user is None:
             return None
-        return UserResponse(username=settings.security_user_name, role="ADMIN")
+        if not self.verify_password(password, user.password):
+            return None
+        return UserResponse.model_validate(user)
 
-    def create_access_token(self, username: str) -> str:
-        """Генерація JWT токена доступу."""
+    @staticmethod
+    def create_access_token(username: str, role: UserRole) -> str:
+        """Генерація JWT токена доступу з роллю користувача."""
         now = datetime.now(UTC)
         expire = now + timedelta(minutes=settings.jwt_expire_minutes)
         payload: dict[str, object] = {
             "sub": username,
-            "role": "ADMIN",
+            "role": role.value,
             "iat": now,
             "exp": expire,
         }
         return jwt.encode(payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
 
-    def verify_token(self, token: str) -> UserResponse | None:
-        """Валідація JWT токена."""
+    async def verify_token(self, token: str) -> UserResponse | None:
+        """Валідація JWT токена та отримання актуального користувача з БД."""
         try:
             payload = jwt.decode(
                 token,
@@ -56,61 +64,35 @@ class AuthService:
                 algorithms=[settings.jwt_algorithm],
             )
             username = payload.get("sub")
-            role = payload.get("role", "ADMIN")
             if not isinstance(username, str) or not username:
                 return None
-            return UserResponse(username=username, role=str(role))
+            user = await self._user_repository.find_by_username(username)
+            if user is None:
+                return None
+            return UserResponse.model_validate(user)
         except jwt.PyJWTError:
             return None
 
-    def login(self, username: str, password: str) -> TokenResponse:
-        """Автентифікація користувача та видача токена."""
-        user = self.authenticate_user(username, password)
+    async def login(self, username: str, password: str) -> TokenResponse:
+        """Автентифікація користувача та видача JWT токена."""
+        user = await self.authenticate_user(username, password)
         if user is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Невірний логін або пароль",
                 headers={"WWW-Authenticate": "Basic, Bearer"},
             )
-        token = self.create_access_token(user.username)
+        token = self.create_access_token(user.username, user.role)
         return TokenResponse(
             access_token=token,
             token_type="bearer",
             username=user.username,
+            role=user.role,
         )
 
 
-_auth_service_instance = AuthService()
+def get_auth_service(user_repository: UserRepositoryDep) -> AuthService:
+    return AuthService(user_repository)
 
 
-def get_auth_service() -> AuthService:
-    return _auth_service_instance
-
-
-def get_current_user(
-    basic_credentials: Annotated[HTTPBasicCredentials | None, Depends(http_basic)],
-    bearer_credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(http_bearer)],
-    auth_service: Annotated[AuthService, Depends(get_auth_service)],
-) -> UserResponse:
-    """FastAPI-залежність для захисту ендпоінтів (підтримує Basic Auth та Bearer JWT)."""
-    if basic_credentials is not None:
-        user = auth_service.authenticate_user(
-            basic_credentials.username,
-            basic_credentials.password,
-        )
-        if user is not None:
-            return user
-
-    if bearer_credentials is not None:
-        user = auth_service.verify_token(bearer_credentials.credentials)
-        if user is not None:
-            return user
-
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Необхідна авторизація для доступу до цього ресурсу",
-        headers={"WWW-Authenticate": "Basic, Bearer"},
-    )
-
-
-CurrentUserDep = Annotated[UserResponse, Depends(get_current_user)]
+AuthServiceDep = Annotated[AuthService, Depends(get_auth_service)]

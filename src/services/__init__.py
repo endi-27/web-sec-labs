@@ -1,8 +1,7 @@
 from src.services.auth_service import (
     AuthService,
-    CurrentUserDep,
+    AuthServiceDep,
     get_auth_service,
-    get_current_user,
 )
 from src.services.book_service import (
     BookService,
@@ -12,9 +11,8 @@ from src.services.book_service import (
 
 __all__ = [
     "AuthService",
-    "CurrentUserDep",
+    "AuthServiceDep",
     "get_auth_service",
-    "get_current_user",
     "BookService",
     "BookServiceDep",
     "get_book_service",

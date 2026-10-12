@@ -59,5 +59,19 @@ CRUD API з In-Memory сховищем для сутності `Book`:
 - **Аудит (`AuditableMixin`)**: додано метадані аудиту до моделі `BookORM` та схеми `BookResponse` (`created_date`, `created_by`, `last_modified_date`, `last_modified_by`, `version`).
 - **Авторизація всіх ендпоінтів `/api/v1/books`**: усі операції (`GET`, `POST`, `PUT`, `DELETE`) захищені та успішно виконуються при передачі Basic Auth або Bearer JWT токена.
 
+## Лабораторна робота 5
+
+Багатокористувацька модель (Multi-User) та рольовий контроль доступу (RBAC):
+- **Таблиця `users` та ролі `UserRole(StrEnum)`**: створено сутність `UserORM` (`src/models/user.py`), `UserRepository` (`src/repositories/user_repository.py`) та міграцію Alembic `0002_create_users_and_seed.py`, яка сідує 3 користувачів з `bcrypt`-паролями:
+  - `admin` / `admin` (`ADMIN`)
+  - `user` / `user` (`USER`)
+  - `superadmin` / `superadmin` (`SUPERADMIN`)
+- **Динамічні залежності авторизації (`src/controllers/dependencies.py`)**: винесено `get_current_user` та фабрику залежностей `require_roles(*allowed_roles: UserRole)` для гнучкої перевірки ролей на рівні ендпоінтів.
+- **20 HTTP-тестів за ролями**:
+  - Файл для VS Code REST Client: `tests/http/multi-user-basic.http`
+  - Автотести `pytest`: `tests/test_http_auth.py`
+
+
+
 
 

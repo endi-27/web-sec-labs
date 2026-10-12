@@ -1,0 +1,167 @@
+### 1. GET /hello/admin as ADMIN (admin:admin) — 200 OK
+GET http://localhost:8000/api/v1/hello/admin
+Authorization: Basic admin:admin
+Accept: application/json
+
+###
+
+### 2. GET /hello/admin as USER (user:user) — 403 Forbidden
+GET http://localhost:8000/api/v1/hello/admin
+Authorization: Basic user:user
+Accept: application/json
+
+###
+
+### 3. GET /hello/admin as SUPERADMIN (superadmin:superadmin) — 403 Forbidden (only ADMIN)
+GET http://localhost:8000/api/v1/hello/admin
+Authorization: Basic superadmin:superadmin
+Accept: application/json
+
+###
+
+### 4. GET /hello/user as USER (user:user) — 200 OK
+GET http://localhost:8000/api/v1/hello/user
+Authorization: Basic user:user
+Accept: application/json
+
+###
+
+### 5. GET /hello/user as ADMIN (admin:admin) — 403 Forbidden (only USER)
+GET http://localhost:8000/api/v1/hello/user
+Authorization: Basic admin:admin
+Accept: application/json
+
+###
+
+### 6. GET /hello/man as USER (user:user) — 200 OK (allowed: USER, ADMIN)
+GET http://localhost:8000/api/v1/hello/man
+Authorization: Basic user:user
+Accept: application/json
+
+###
+
+### 7. GET /hello/man as ADMIN (admin:admin) — 200 OK (allowed: USER, ADMIN)
+GET http://localhost:8000/api/v1/hello/man
+Authorization: Basic admin:admin
+Accept: application/json
+
+###
+
+### 8. GET /hello/man as SUPERADMIN (superadmin:superadmin) — 403 Forbidden (only USER, ADMIN)
+GET http://localhost:8000/api/v1/hello/man
+Authorization: Basic superadmin:superadmin
+Accept: application/json
+
+###
+
+### 9. GET /hello/superadmin as SUPERADMIN (superadmin:superadmin) — 200 OK
+GET http://localhost:8000/api/v1/hello/superadmin
+Authorization: Basic superadmin:superadmin
+Accept: application/json
+
+###
+
+### 10. GET /hello/superadmin as ADMIN (admin:admin) — 403 Forbidden (only SUPERADMIN)
+GET http://localhost:8000/api/v1/hello/superadmin
+Authorization: Basic admin:admin
+Accept: application/json
+
+###
+
+### 11. GET /hello/unknown as USER (user:user) — 200 OK (any authenticated role)
+GET http://localhost:8000/api/v1/hello/unknown
+Authorization: Basic user:user
+Accept: application/json
+
+###
+
+### 12. GET /hello/unknown as SUPERADMIN (superadmin:superadmin) — 200 OK (any authenticated role)
+GET http://localhost:8000/api/v1/hello/unknown
+Authorization: Basic superadmin:superadmin
+Accept: application/json
+
+###
+
+### 13. GET All Books as USER (user:user) — 200 OK
+GET http://localhost:8000/api/v1/books
+Authorization: Basic user:user
+Accept: application/json
+
+###
+
+### 14. GET Book by ID=2 as ADMIN (admin:admin) — 200 OK
+GET http://localhost:8000/api/v1/books/2
+Authorization: Basic admin:admin
+Accept: application/json
+
+###
+
+### 15. CREATE Book as USER (user:user) — 403 Forbidden (requires ADMIN or SUPERADMIN)
+POST http://localhost:8000/api/v1/books
+Authorization: Basic user:user
+Content-Type: application/json
+Accept: application/json
+
+{
+  "title": "Forbidden Book by User",
+  "author": "Regular User",
+  "price": 25.00
+}
+
+###
+
+### 16. CREATE Book as ADMIN (admin:admin) — 200 OK (allowed: ADMIN, SUPERADMIN)
+POST http://localhost:8000/api/v1/books
+Authorization: Basic admin:admin
+Content-Type: application/json
+Accept: application/json
+
+{
+  "title": "Zero Trust Networks",
+  "author": "Evan Gilman, Doug Barth",
+  "description": "Building Secure Systems in Untrusted Networks",
+  "price": 45.00,
+  "published_year": 2017
+}
+
+###
+
+### 17. UPDATE Book by ID=2 as USER (user:user) — 403 Forbidden (requires ADMIN or SUPERADMIN)
+PUT http://localhost:8000/api/v1/books/2
+Authorization: Basic user:user
+Content-Type: application/json
+Accept: application/json
+
+{
+  "title": "Forbidden Update by User",
+  "price": 10.00
+}
+
+###
+
+### 18. UPDATE Book by ID=2 as SUPERADMIN (superadmin:superadmin) — 200 OK (allowed: ADMIN, SUPERADMIN)
+PUT http://localhost:8000/api/v1/books/2
+Authorization: Basic superadmin:superadmin
+Content-Type: application/json
+Accept: application/json
+
+{
+  "title": "The Web Application Hacker's Handbook (2nd Edition)",
+  "price": 54.99
+}
+
+###
+
+### 19. DELETE Book by ID=1 as ADMIN (admin:admin) — 403 Forbidden (requires SUPERADMIN)
+DELETE http://localhost:8000/api/v1/books/1
+Authorization: Basic admin:admin
+Accept: application/json
+
+###
+
+### 20. DELETE Book by ID=1 as SUPERADMIN (superadmin:superadmin) — 200 OK (allowed only: SUPERADMIN)
+DELETE http://localhost:8000/api/v1/books/1
+Authorization: Basic superadmin:superadmin
+Accept: application/json
+
+###

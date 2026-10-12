@@ -7,6 +7,7 @@ from loguru import logger
 from src.config import settings
 from src.controllers.auth_controller import router as auth_router
 from src.controllers.book_controller import router as book_router
+from src.controllers.hello_controller import router as hello_router
 from src.database import engine
 
 
@@ -29,6 +30,7 @@ app = FastAPI(
 # Підключення роутерів
 app.include_router(auth_router, prefix=settings.api_v1_prefix)
 app.include_router(book_router, prefix=settings.api_v1_prefix)
+app.include_router(hello_router, prefix=settings.api_v1_prefix)
 
 
 @app.get("/", tags=["General"], summary="Інформація про сервіс")
