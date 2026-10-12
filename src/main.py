@@ -1,9 +1,21 @@
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from loguru import logger
 
 from src.config import settings
 from src.controllers.auth_controller import router as auth_router
 from src.controllers.book_controller import router as book_router
+from src.database import engine
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
+    """Життєвий цикл додатку (міграції та seed-дані виконуються через Alembic)."""
+    yield
+    await engine.dispose()
+
 
 app = FastAPI(
     title=settings.app_name,
@@ -11,6 +23,7 @@ app = FastAPI(
     description="Backend для лабораторних робіт з курсу 'Безпека веб систем'",
     docs_url="/docs",
     redoc_url="/redoc",
+    lifespan=lifespan,
 )
 
 # Підключення роутерів

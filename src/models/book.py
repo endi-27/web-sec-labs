@@ -2,6 +2,28 @@ import uuid
 from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, Field
+from sqlalchemy import Float, Integer, String, Text
+from sqlalchemy.orm import Mapped, mapped_column
+
+from src.database import Base
+from src.models.auditable import AuditableMixin, AuditableSchema
+
+
+class BookORM(AuditableMixin, Base):
+    """ORM-модель книги в PostgreSQL з полями аудиту (аналог Item extends Auditable)."""
+
+    __tablename__ = "books"
+
+    id: Mapped[str] = mapped_column(
+        String(64),
+        primary_key=True,
+        default=lambda: str(uuid.uuid4()),
+    )
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    author: Mapped[str] = mapped_column(String(100), nullable=False)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    price: Mapped[float] = mapped_column(Float, nullable=False)
+    published_year: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
 
 class BookBase(BaseModel):
@@ -108,8 +130,8 @@ class BookUpdate(BaseModel):
     ] = None
 
 
-class Book(BookBase):
-    """Внутрішня модель сутності книги."""
+class Book(BookBase, AuditableSchema):
+    """Внутрішня модель сутності книги з полями аудиту."""
 
     id: Annotated[
         str,

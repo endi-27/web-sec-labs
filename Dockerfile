@@ -25,6 +25,8 @@ RUN uv sync --frozen --no-dev --no-install-project
 # ==============================================================================
 FROM builder-base AS test
 RUN uv sync --frozen
+COPY alembic/ ./alembic/
+COPY alembic.ini ./
 COPY src/ ./src/
 COPY tests/ ./tests/
 COPY pyproject.toml ./
@@ -53,7 +55,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf 
 # Копіюємо скомпільоване віртуальне середовище з builder етапу
 COPY --from=builder-base --chown=appuser:appuser /app/.venv /app/.venv
 
-# Копіюємо вихідний код додатку та конфігурації
+# Копіюємо міграції Alembic, вихідний код додатку та конфігурації
+COPY --chown=appuser:appuser alembic/ ./alembic/
+COPY --chown=appuser:appuser alembic.ini ./
 COPY --chown=appuser:appuser src/ ./src/
 COPY --chown=appuser:appuser pyproject.toml ./
 
@@ -61,5 +65,6 @@ USER appuser
 
 EXPOSE 8000
 
-# Дефолтний запуск FastAPI додатку через Uvicorn
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000", "--no-access-log"]
+# Застосування міграцій Alembic (створення таблиць + seed-даних) та запуск Uvicorn
+CMD ["sh", "-c", "alembic upgrade head && uvicorn src.main:app --host 0.0.0.0 --port 8000 --no-access-log"]
+

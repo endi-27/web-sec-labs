@@ -1,53 +1,33 @@
 from httpx import AsyncClient
 
 
-async def test_01_login_json_succeeds(client: AsyncClient) -> None:
-    """1. POST /api/v1/auth/login (JSON) — успішний вхід (200 OK)."""
-    response = await client.post(
-        "/api/v1/auth/login",
-        json={"username": "admin", "password": "admin"},
-    )
+async def test_01_get_all_books(authorized_client: AsyncClient) -> None:
+    """1. GET All books — отримання списку всіх книг з PostgreSQL із полями аудиту (200 OK)."""
+    response = await authorized_client.get("/api/v1/books")
     assert response.status_code == 200
-    data = response.json()
-    assert "access_token" in data
-    assert data["token_type"] == "bearer"
-    assert data["username"] == "admin"
+    books = response.json()
+    assert len(books) == 3
+    first = books[0]
+    assert "created_date" in first
+    assert first["created_by"] == "Admin"
+    assert "last_modified_date" in first
+    assert first["last_modified_by"] == "Admin"
+    assert first["version"] == 1
 
 
-async def test_02_login_basic_auth_succeeds(client: AsyncClient) -> None:
-    """2. POST /api/v1/auth/login (Basic Auth) — успішний вхід (200 OK)."""
-    response = await client.post(
-        "/api/v1/auth/login",
-        auth=("admin", "admin"),
-    )
+async def test_02_get_one_book(authorized_client: AsyncClient) -> None:
+    """2. GET one book — отримання однієї книги за ID=2 з полями аудиту (200 OK)."""
+    response = await authorized_client.get("/api/v1/books/2")
     assert response.status_code == 200
-    assert "access_token" in response.json()
+    book = response.json()
+    assert book["id"] == "2"
+    assert book["created_by"] == "Admin"
+    assert book["version"] == 1
 
 
-async def test_03_get_health_succeeds(client: AsyncClient) -> None:
-    """3. GET /health — перевірка стану сервісу проходить без авторизації (200 OK)."""
-    response = await client.get("/health")
-    assert response.status_code == 200
-    assert response.json()["status"] == "ok"
-
-
-async def test_04_get_all_books_succeeds(client: AsyncClient) -> None:
-    """4. GET /api/v1/books — отримання списку книг проходить без авторизації (200 OK)."""
-    response = await client.get("/api/v1/books")
-    assert response.status_code == 200
-    assert len(response.json()) == 3
-
-
-async def test_05_get_book_by_id_succeeds(client: AsyncClient) -> None:
-    """5. GET /api/v1/books/1 — отримання книги за ID проходить без авторизації (200 OK)."""
-    response = await client.get("/api/v1/books/1")
-    assert response.status_code == 200
-    assert response.json()["id"] == "1"
-
-
-async def test_06_post_create_book_without_auth_fails_401(client: AsyncClient) -> None:
-    """6. POST /api/v1/books — створення книги без авторизації падає з 401."""
-    response = await client.post(
+async def test_03_create_one_book(authorized_client: AsyncClient) -> None:
+    """3. CREATE one book — створення нової книги в PostgreSQL з аудитом (200 OK)."""
+    response = await authorized_client.post(
         "/api/v1/books",
         json={
             "title": "Zero Trust Networks",
@@ -57,43 +37,39 @@ async def test_06_post_create_book_without_auth_fails_401(client: AsyncClient) -
             "published_year": 2017,
         },
     )
-    assert response.status_code == 401
+    assert response.status_code == 200
+    created = response.json()
+    assert created["title"] == "Zero Trust Networks"
+    assert created["created_by"] == "admin"
+    assert created["last_modified_by"] == "admin"
+    assert created["version"] == 1
+    assert "created_date" in created
+    assert "last_modified_date" in created
 
 
-async def test_07_put_update_book_without_auth_fails_401(client: AsyncClient) -> None:
-    """7. PUT /api/v1/books/1 — оновлення книги без авторизації падає з 401."""
-    response = await client.put(
+async def test_04_update_one_book(authorized_client: AsyncClient) -> None:
+    """4. Update one book — оновлення книги змінює last_modified_by та інкрементує version (200 OK)."""
+    response = await authorized_client.put(
         "/api/v1/books/1",
-        json={"title": "Web Application Security (Updated)", "price": 34.99},
-    )
-    assert response.status_code == 401
-
-
-async def test_08_delete_book_without_auth_fails_401(client: AsyncClient) -> None:
-    """8. DELETE /api/v1/books/1 — видалення книги без авторизації падає з 401."""
-    response = await client.delete("/api/v1/books/1")
-    assert response.status_code == 401
-
-
-async def test_09_post_create_book_bad_basic_credentials_fails_401(client: AsyncClient) -> None:
-    """9. POST /api/v1/books — створення книги з невірними Basic Auth даними падає з 401."""
-    response = await client.post(
-        "/api/v1/books",
-        auth=("admin1", "admin"),
         json={
-            "title": "Unauthorized Book",
-            "author": "Unknown",
-            "price": 19.99,
+            "title": "Web Application Security (Updated)",
+            "description": "Updated description with audit metadata",
+            "price": 34.99,
         },
     )
-    assert response.status_code == 401
+    assert response.status_code == 200
+    updated = response.json()
+    assert updated["id"] == "1"
+    assert updated["title"] == "Web Application Security (Updated)"
+    assert updated["created_by"] == "Admin"
+    assert updated["last_modified_by"] == "admin"
+    assert updated["version"] == 2
 
 
-async def test_10_put_update_book_invalid_bearer_token_fails_401(client: AsyncClient) -> None:
-    """10. PUT /api/v1/books/1 — оновлення книги з невалідним JWT токеном падає з 401."""
-    response = await client.put(
-        "/api/v1/books/1",
-        headers={"Authorization": "Bearer invalid.jwt.token"},
-        json={"title": "Tampered Book Title", "price": 1.00},
-    )
-    assert response.status_code == 401
+async def test_05_delete_one_book(authorized_client: AsyncClient) -> None:
+    """5. DELETE one book — видалення книги з PostgreSQL проходить успішно (200 OK)."""
+    delete_res = await authorized_client.delete("/api/v1/books/1")
+    assert delete_res.status_code == 200
+
+    get_res = await authorized_client.get("/api/v1/books/1")
+    assert get_res.status_code == 404

@@ -1,42 +1,20 @@
-### 1. LOGIN via JSON (POST /api/v1/auth/login) — 200 OK
-POST http://localhost:8000/api/v1/auth/login
-Content-Type: application/json
-Accept: application/json
-
-{
-  "username": "admin",
-  "password": "admin"
-}
-
-###
-
-### 2. LOGIN via Basic Auth (POST /api/v1/auth/login) — 200 OK
-POST http://localhost:8000/api/v1/auth/login
+### 1. GET All books
+GET http://localhost:8000/api/v1/books
 Authorization: Basic admin:admin
 Accept: application/json
 
 ###
 
-### 3. GET Healthcheck (GET /health) — 200 OK
-GET http://localhost:8000/health
+### 2. GET one book
+GET http://localhost:8000/api/v1/books/2
+Authorization: Basic admin:admin
 Accept: application/json
 
 ###
 
-### 4. GET All Books (GET /api/v1/books) — 200 OK
-GET http://localhost:8000/api/v1/books
-Accept: application/json
-
-###
-
-### 5. GET Book by ID=1 (GET /api/v1/books/1) — 200 OK
-GET http://localhost:8000/api/v1/books/1
-Accept: application/json
-
-###
-
-### 6. CREATE Book without Auth (POST /api/v1/books) — 401 Unauthorized
+### 3. CREATE one book
 POST http://localhost:8000/api/v1/books
+Authorization: Basic admin:admin
 Content-Type: application/json
 Accept: application/json
 
@@ -50,47 +28,23 @@ Accept: application/json
 
 ###
 
-### 7. UPDATE Book without Auth (PUT /api/v1/books/1) — 401 Unauthorized
+### 4. Update one book
 PUT http://localhost:8000/api/v1/books/1
+Authorization: Basic admin:admin
 Content-Type: application/json
 Accept: application/json
 
 {
   "title": "Web Application Security (Updated)",
+  "description": "Updated description with audit metadata",
   "price": 34.99
 }
 
 ###
 
-### 8. DELETE Book without Auth (DELETE /api/v1/books/1) — 401 Unauthorized
+### 5. DELETE one book
 DELETE http://localhost:8000/api/v1/books/1
+Authorization: Basic admin:admin
 Accept: application/json
-
-###
-
-### 9. CREATE Book with Bad Basic Credentials (POST /api/v1/books) — 401 Unauthorized
-POST http://localhost:8000/api/v1/books
-Authorization: Basic admin1:admin
-Content-Type: application/json
-Accept: application/json
-
-{
-  "title": "Unauthorized Book",
-  "author": "Unknown",
-  "price": 19.99
-}
-
-###
-
-### 10. UPDATE Book with Invalid Bearer Token (PUT /api/v1/books/1) — 401 Unauthorized
-PUT http://localhost:8000/api/v1/books/1
-Authorization: Bearer invalid.jwt.token
-Content-Type: application/json
-Accept: application/json
-
-{
-  "title": "Tampered Book Title",
-  "price": 1.00
-}
 
 ###

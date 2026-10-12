@@ -52,4 +52,12 @@ CRUD API з In-Memory сховищем для сутності `Book`:
   - Автотести `pytest`: `tests/test_http_auth.py`
   - HTTP-файл для IDE: `tests/http/basic-authorization.http`
 
+## Лабораторна робота 4
+
+Інтеграція з PostgreSQL, патерн Repository, аудит записів (`AuditableMixin`) та повноцінний авторизований CRUD:
+- **База даних та Repository**: перехід з in-memory `dict` на асинхронну PostgreSQL (`SQLAlchemy 2.0` + `asyncpg`) через `BookRepository` (`src/repositories/book_repository.py`).
+- **Аудит (`AuditableMixin`)**: додано метадані аудиту до моделі `BookORM` та схеми `BookResponse` (`created_date`, `created_by`, `last_modified_date`, `last_modified_by`, `version`).
+- **Авторизація всіх ендпоінтів `/api/v1/books`**: усі операції (`GET`, `POST`, `PUT`, `DELETE`) захищені та успішно виконуються при передачі Basic Auth або Bearer JWT токена.
+
+
 

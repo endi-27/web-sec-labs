@@ -40,8 +40,11 @@ services:
       DB_NAME: ${DB_NAME:-websec_db}
     volumes:
       - ./src:/app/src:z
+      - ./alembic:/app/alembic:z
+      - ./alembic.ini:/app/alembic.ini:z
     ports:
       - "8000:8000"
+
     depends_on:
       postgres:
         condition: service_healthy

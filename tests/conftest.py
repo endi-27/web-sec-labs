@@ -1,19 +1,28 @@
+import asyncio
 import os
 from collections.abc import AsyncIterator
 
 import pytest
+from alembic.config import Config
 from httpx import ASGITransport, AsyncClient
 
+from alembic import command
 from src.config import settings
 from src.main import app
 from src.services.auth_service import get_auth_service
-from src.services.book_service import get_book_service
+
+
+def _run_alembic_reset() -> None:
+    """Перезапускає міграцію Alembic (downgrade base -> upgrade head) для чистих seed-даних."""
+    alembic_cfg = Config("alembic.ini")
+    command.downgrade(alembic_cfg, "base")
+    command.upgrade(alembic_cfg, "head")
 
 
 @pytest.fixture(autouse=True)
-def reset_books() -> None:
-    """Скидає in-memory сховище книг перед кожним тестом."""
-    get_book_service().seed_data()
+async def reset_books() -> None:
+    """Скидає стан БД та початкові книги через міграцію Alembic перед кожним тестом."""
+    await asyncio.to_thread(_run_alembic_reset)
 
 
 @pytest.fixture
