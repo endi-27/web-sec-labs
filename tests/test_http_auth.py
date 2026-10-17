@@ -1,6 +1,25 @@
 from httpx import AsyncClient
 
 
+async def test_00_anonymous_request_unauthorized(client: AsyncClient) -> None:
+    """0. GET /api/v1/hello/admin без авторизації — 401 Unauthorized (аналог whenAnonymThenStatusUnauthorized)."""
+    response = await client.get("/api/v1/hello/admin")
+    assert response.status_code == 401
+    assert "WWW-Authenticate" in response.headers
+
+
+async def test_00_anonymous_books_unauthorized(client: AsyncClient) -> None:
+    """0. GET /api/v1/books без авторизації — 401 Unauthorized."""
+    response = await client.get("/api/v1/books")
+    assert response.status_code == 401
+
+
+async def test_00_invalid_credentials_unauthorized(client: AsyncClient) -> None:
+    """0. GET /api/v1/hello/admin з невірним логіном/паролем — 401 Unauthorized."""
+    response = await client.get("/api/v1/hello/admin", auth=("invalid_user", "wrong_password"))
+    assert response.status_code == 401
+
+
 async def test_01_hello_admin_as_admin_succeeds(client: AsyncClient) -> None:
     """1. GET /api/v1/hello/admin під admin (ADMIN) — 200 OK."""
     response = await client.get("/api/v1/hello/admin", auth=("admin", "admin"))
