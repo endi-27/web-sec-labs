@@ -71,6 +71,13 @@ CRUD API з In-Memory сховищем для сутності `Book`:
   - Файл для VS Code REST Client: `tests/http/multi-user-basic.http`
   - Автотести `pytest`: `tests/test_http_auth.py`
 
+## Лабораторна робота 6
+
+Контроль доступу на рівні методів (Method-Level Security) та анотації доступу:
+- **Архітектурні особливості FastAPI vs Spring Security**: на відміну від Spring Security (де на попередніх кроках налаштовувався глобальний фільтр `SecurityFilterChain` з URL-мапінгом ролей), у FastAPI стандартним та ідіоматичним підходом є оголошення вимог безпеки безпосередньо над обробниками маршрутів за допомогою Dependency Injection (`typing.Annotated[UserResponse, Depends(require_roles(...))]`).
+- **Захист ендпоінтів**: кожен метод контролерів (`hello_controller.py`, `book_controller.py`) має власну декларативну анотацію дозволених ролей (RBAC).
+- **Хешування паролів**: підтверджено використання алгоритму `bcrypt` для збереження паролів у БД замість відкритого тексту.
+
 
 
 
