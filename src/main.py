@@ -29,6 +29,7 @@ app = FastAPI(
 
 # Підключення роутерів
 app.include_router(auth_router, prefix=settings.api_v1_prefix)
+app.include_router(auth_router)  # Маршрути /auth/login та /auth/authenticate (сумісність із форматом викладача)
 app.include_router(book_router, prefix=settings.api_v1_prefix)
 app.include_router(hello_router, prefix=settings.api_v1_prefix)
 

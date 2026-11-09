@@ -86,12 +86,26 @@ CRUD API з In-Memory сховищем для сутності `Book`:
   - `200 OK`: перевірка успішного доступу для дозволених ролей (`ADMIN`, `USER`, `SUPERADMIN`) із валідацією тіла відповіді.
   - `403 Forbidden`: перевірка блокування доступу для ролей без достатніх прав.
 
-## Лабораторна робота 6
+## Лабораторна робота 8
 
-Контроль доступу на рівні методів (Method-Level Security) та анотації доступу:
-- **Архітектурні особливості FastAPI vs Spring Security**: на відміну від Spring Security (де на попередніх кроках налаштовувався глобальний фільтр `SecurityFilterChain` з URL-мапінгом ролей), у FastAPI стандартним та ідіоматичним підходом є оголошення вимог безпеки безпосередньо над обробниками маршрутів за допомогою Dependency Injection (`typing.Annotated[UserResponse, Depends(require_roles(...))]`).
-- **Захист ендпоінтів**: кожен метод контролерів (`hello_controller.py`, `book_controller.py`) має власну декларативну анотацію дозволених ролей (RBAC).
-- **Хешування паролів**: підтверджено використання алгоритму `bcrypt` для збереження паролів у БД замість відкритого тексту.
+Автентифікація користувача та генерація JWT токена (JSON Web Token):
+- **Генерація JWT (`AuthService.create_access_token`)**: реалізовано створення підписаного токена (HMAC-SHA256) із клеймами:
+  - `sub`: ідентифікатор / ім'я користувача (`username`)
+  - `role`: роль користувача (`ADMIN`, `USER`, `SUPERADMIN`)
+  - `authorities`: список прав/ролей у форматі Spring Security (`["ADMIN"]`, `["USER"]`), що очікується на лекціях
+  - `iat`: час видачі токена (Issued At)
+  - `exp`: термін дії токена (Expiration Time, 60 хвилин)
+- **Ендпоінти автентифікації**:
+  - `POST /api/v1/auth/login` — стандартний REST API ендпоінт FastAPI
+  - `POST /auth/authenticate` — прямий аліас для повної сумісності з форматом запитів викладача у Spring Boot
+  - Підтримка передачі параметрів як `{ "username": "admin", "password": "admin" }`, так і `{ "email": "admin", "password": "admin" }` / `{ "login": "admin", "password": "admin" }`
+- **Перевірка у jwt.io**:
+  - Отриманий у відповіді токен декодується на веб-сервісі [jwt.io](https://jwt.io)
+  - Скріншот розпарсеного JWT із клеймами `sub`, `role`, `authorities`, `iat`, `exp` надсилається у Moodle
+- **HTTP-тести**:
+  - Pytest автотести: `tests/test_jwt_generation.py`
+  - Файл для REST Client / Postman: `tests/http/jwt-auth.http`
+
 
 
 

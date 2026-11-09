@@ -44,12 +44,13 @@ class AuthService:
 
     @staticmethod
     def create_access_token(username: str, role: UserRole) -> str:
-        """Генерація JWT токена доступу з роллю користувача."""
+        """Генерація JWT токена доступу з роллю та authorities користувача."""
         now = datetime.now(UTC)
         expire = now + timedelta(minutes=settings.jwt_expire_minutes)
         payload: dict[str, object] = {
             "sub": username,
             "role": role.value,
+            "authorities": [role.value],
             "iat": now,
             "exp": expire,
         }
@@ -84,10 +85,12 @@ class AuthService:
             )
         token = self.create_access_token(user.username, user.role)
         return TokenResponse(
+            token=token,
             access_token=token,
             token_type="bearer",
             username=user.username,
             role=user.role,
+            authorities=[user.role.value],
         )
 
 

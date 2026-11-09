@@ -1,0 +1,61 @@
+### ===================================================================
+### Лабораторна робота 8: Отримання JWT токена та валідація на jwt.io
+### ===================================================================
+
+### 1. Отримання JWT токена для admin через стандартний ендпоінт FastAPI
+POST http://localhost:8000/api/v1/auth/login
+Content-Type: application/json
+Accept: application/json
+
+{
+  "username": "admin",
+  "password": "admin"
+}
+
+###
+
+### 2. Отримання JWT токена через ендпоінт у форматі викладача (/auth/authenticate)
+POST http://localhost:8000/auth/authenticate
+Content-Type: application/json
+Accept: application/json
+
+{
+  "email": "admin",
+  "password": "admin"
+}
+
+###
+
+### 3. Отримання JWT токена для звичайного користувача user
+POST http://localhost:8000/api/v1/auth/login
+Content-Type: application/json
+Accept: application/json
+
+{
+  "username": "user",
+  "password": "user"
+}
+
+###
+
+### 4. Отримання JWT токена для суперкористувача superadmin
+POST http://localhost:8000/api/v1/auth/login
+Content-Type: application/json
+Accept: application/json
+
+{
+  "username": "superadmin",
+  "password": "superadmin"
+}
+
+###
+
+### 5. Спроба входу з невірними обліковими даними (401 Unauthorized)
+POST http://localhost:8000/api/v1/auth/login
+Content-Type: application/json
+Accept: application/json
+
+{
+  "username": "admin",
+  "password": "wrong_password"
+}

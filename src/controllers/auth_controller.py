@@ -32,3 +32,19 @@ async def login(
         detail="Не передано облікові дані для входу",
         headers={"WWW-Authenticate": "Basic, Bearer"},
     )
+
+
+@router.post(
+    "/authenticate",
+    response_model=TokenResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Автентифікація та отримання JWT токена (аліас)",
+    description="Автентифікація для повної сумісності з форматом викладача (/auth/authenticate).",
+)
+async def authenticate(
+    auth_service: AuthServiceDep,
+    basic_credentials: Annotated[HTTPBasicCredentials | None, Depends(http_basic)] = None,
+    credentials: Annotated[LoginRequest | None, Body()] = None,
+) -> TokenResponse:
+    """Ендпоінт автентифікації за адресою /api/v1/auth/authenticate."""
+    return await login(auth_service, basic_credentials, credentials)
