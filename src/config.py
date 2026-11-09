@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     db_name: str = "websec_db"
 
     # Налаштування JWT
-    jwt_secret_key: str = "super-secret-web-sec-labs-key-2026"
+    jwt_secret_key: str = "79309341218196607957028081080438"
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 60
 

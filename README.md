@@ -106,6 +106,32 @@ CRUD API з In-Memory сховищем для сутності `Book`:
   - Pytest автотести: `tests/test_jwt_generation.py`
   - Файл для REST Client / Postman: `tests/http/jwt-auth.http`
 
+## Лабораторна робота 9
+
+Авторизація маршрутів за допомогою JWT (Bearer Token) та перевірка прав доступу (diff authorities):
+- **Bearer Token авторизація (`HTTPBearer`)**: у `src/controllers/dependencies.py` налаштовано вилучення та валідацію JWT-токена із заголовка `Authorization: Bearer <token>`.
+- **Контроль доступу на рівні методів (RBAC / authorities)**: фабрика залежностей `require_roles(*allowed_roles)` перевіряє роль користувача, вилучену з валідного JWT, забезпечуючи повернення `200 OK` (якщо права є) або `403 Forbidden` (якщо прав недостатньо). Усі запити без токена повертають `401 Unauthorized`.
+- **10 сценаріїв тестування доступу (10 скріншотів для GitHub)**:
+  - Файл для REST Client / Postman: `tests/http/jwt-authorities.http`
+  - Автоматизовані тести pytest: `tests/test_jwt_authorities.py`
+  - Папка зі скріншотами: `docs/screenshots/`
+
+### Зведена таблиця 10 запитів доступу:
+
+| № | Метод та URL | Авторизація | Очікуваний статус | Опис сценарію | Скріншот |
+|:---:|---|---|:---:|---|:---:|
+| **1** | `POST /api/v1/auth/login` | Body: `admin:admin` | `200 OK` | Отримання токена для ADMIN (authorities: `["ADMIN"]`) | ![01](docs/screenshots/01_login_admin.png) |
+| **2** | `POST /api/v1/auth/login` | Body: `user:user` | `200 OK` | Отримання токена для USER (authorities: `["USER"]`) | ![02](docs/screenshots/02_login_user.png) |
+| **3** | `GET /api/v1/hello/admin` | `Bearer <ADMIN_TOKEN>` | `200 OK` | Доступ адміністратора до admin-ендпоінта | ![03](docs/screenshots/03_hello_admin_with_admin_200.png) |
+| **4** | `GET /api/v1/hello/admin` | `Bearer <USER_TOKEN>` | `403 Forbidden` | Заборона доступу користувачу `USER` до admin-ендпоінта | ![04](docs/screenshots/04_hello_admin_with_user_403.png) |
+| **5** | `GET /api/v1/hello/user` | `Bearer <USER_TOKEN>` | `200 OK` | Доступ користувача до user-ендпоінта | ![05](docs/screenshots/05_hello_user_with_user_200.png) |
+| **6** | `GET /api/v1/hello/user` | `Bearer <ADMIN_TOKEN>` | `403 Forbidden` | Заборона доступу адміністратору до user-only ендпоінта | ![06](docs/screenshots/06_hello_user_with_admin_403.png) |
+| **7** | `GET /api/v1/hello/man` | `Bearer <USER_TOKEN>` | `200 OK` | Доступ `USER` до спільного ендпоінта (`USER`, `ADMIN`) | ![07](docs/screenshots/07_hello_man_with_user_200.png) |
+| **8** | `GET /api/v1/hello/man` | `Bearer <ADMIN_TOKEN>` | `200 OK` | Доступ `ADMIN` до спільного ендпоінта (`USER`, `ADMIN`) | ![08](docs/screenshots/08_hello_man_with_admin_200.png) |
+| **9** | `GET /api/v1/hello/unknown` | `Bearer <USER_TOKEN>` | `200 OK` | Доступ будь-якого автентифікованого користувача | ![09](docs/screenshots/09_hello_unknown_with_user_200.png) |
+| **10** | `GET /api/v1/hello/admin` | *Без токена* | `401 Unauthorized` | Заборона доступу для анонімного запиту | ![10](docs/screenshots/10_hello_admin_without_token_401.png) |
+
+
 
 
 

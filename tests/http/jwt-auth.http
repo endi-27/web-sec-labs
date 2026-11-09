@@ -1,7 +1,3 @@
-### ===================================================================
-### Лабораторна робота 8: Отримання JWT токена та валідація на jwt.io
-### ===================================================================
-
 ### 1. Отримання JWT токена для admin через стандартний ендпоінт FastAPI
 POST http://localhost:8000/api/v1/auth/login
 Content-Type: application/json
@@ -14,7 +10,7 @@ Accept: application/json
 
 ###
 
-### 2. Отримання JWT токена через ендпоінт у форматі викладача (/auth/authenticate)
+### 2. Отримання JWT токена через ендпоінт (/auth/authenticate)
 POST http://localhost:8000/auth/authenticate
 Content-Type: application/json
 Accept: application/json

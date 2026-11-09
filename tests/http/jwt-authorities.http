@@ -1,0 +1,75 @@
+### 1. Отримання токена для ADMIN
+# @name loginAdmin
+POST http://localhost:8000/api/v1/auth/login
+Content-Type: application/json
+Accept: application/json
+
+{
+  "username": "admin",
+  "password": "admin"
+}
+
+### Збереження токена адміністратора
+@adminToken = {{loginAdmin.response.body.access_token}}
+
+
+### 2. Отримання токена для USER
+# @name loginUser
+POST http://localhost:8000/api/v1/auth/login
+Content-Type: application/json
+Accept: application/json
+
+{
+  "username": "user",
+  "password": "user"
+}
+
+### Збереження токена звичайного користувача
+@userToken = {{loginUser.response.body.access_token}}
+
+
+### 3. GET /hello/admin з токеном ADMIN
+GET http://localhost:8000/api/v1/hello/admin
+Authorization: Bearer {{adminToken}}
+Accept: application/json
+
+
+### 4. GET /hello/admin з токеном USER
+GET http://localhost:8000/api/v1/hello/admin
+Authorization: Bearer {{userToken}}
+Accept: application/json
+
+
+### 5. GET /hello/user з токеном USER
+GET http://localhost:8000/api/v1/hello/user
+Authorization: Bearer {{userToken}}
+Accept: application/json
+
+
+### 6. GET /hello/user з токеном ADMIN
+GET http://localhost:8000/api/v1/hello/user
+Authorization: Bearer {{adminToken}}
+Accept: application/json
+
+
+### 7. GET /hello/man з токеном USER
+GET http://localhost:8000/api/v1/hello/man
+Authorization: Bearer {{userToken}}
+Accept: application/json
+
+
+### 8. GET /hello/man з токеном ADMIN
+GET http://localhost:8000/api/v1/hello/man
+Authorization: Bearer {{adminToken}}
+Accept: application/json
+
+
+### 9. GET /hello/unknown з токеном USER
+GET http://localhost:8000/api/v1/hello/unknown
+Authorization: Bearer {{userToken}}
+Accept: application/json
+
+
+### 10. GET /hello/admin БЕЗ токена
+GET http://localhost:8000/api/v1/hello/admin
+Accept: application/json
